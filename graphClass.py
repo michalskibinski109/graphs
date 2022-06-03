@@ -8,13 +8,13 @@ class Graph:
         """
         self.edges = U
         self.nodes = V
-        self.adjMatrix = self.AdjMatrix()
-        self.incMatrix = self.incMatrix()
+        self.adjMatrixRep = self.adjMatrix()
+        self.incMatrixRep = self.incMatrix()
 
     def showList(self):
         return self.edges, self.nodes
 
-    def AdjMatrix(self):
+    def adjMatrix(self):
         """
         return Adjacency matrix
         """
