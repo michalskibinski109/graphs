@@ -1,6 +1,8 @@
-from re import L
+from pprint import pprint
 import numpy as np
-
+import matplotlib.pyplot as plt
+import networkx as nx
+from collections import defaultdict
 
 class DirectedGraph:
     def __init__(self, E, N) -> None:
@@ -11,9 +13,17 @@ class DirectedGraph:
         self.nodes = N
         self.adjMatrixRep = self.adjMatrix()
         self.incMatrixRep = self.incMatrix()
+        self.graph = self.dictFunc()
+        self.G = nx.DiGraph()
+        self.G.add_edges_from(E)
 
-    def showList(self):
-        return self.edges, self.nodes
+    def dictFunc(self):
+        graph = defaultdict(list)
+        for (u, v) in self.edges:
+            graph[u].append(v)
+        return graph
+    def __str__(self):
+        return str(f'edges: {self.edges}\nnodes: {self.nodes}')
 
     def adjMatrix(self):
         """
@@ -48,12 +58,38 @@ class DirectedGraph:
                 for j in range(n):
                     for k in range(n):
                         C[i, j] = min(C[i, j], C[i, k]+C[k, j])
-        return(int(C[self.nodes.index(u), self.nodes.index(v)]))
+        return((C[self.nodes.index(u), self.nodes.index(v)]))
+
+    def dfs(self, node, visited = set()):  #function for dfs 
+        if node not in visited:
+            print (node)
+            visited.add(node)
+            for neighbour in self.graph[node]:
+                self.dfs(neighbour, visited)
+                
+    def plot(self, path = []):
+        if len(path) == 0: 
+            path.append(-1)
+        visitedNodes = []
+        for  currNode in path:
+            visitedNodes.append(currNode)
+            pos = nx.spring_layout(self.G)
+            values = [.8 if node in visitedNodes else .9 for node in self.G.nodes()]
+            nx.draw_networkx_nodes(self.G,pos, 
+                       node_color = values, node_size = 500)
+            nx.draw_networkx_labels(self.G, pos)
+            nx.draw_networkx_edges(self.G, pos, arrows=True)
+            plt.show()
 
 
-
-
-E = [(12, 3), (45, 4), (3, 6), (6, 4), (4, 45), (45, 12)]
-N = [12, 3, 45, 4, 6]
+E = [('A', 'B'), ('A', 'C'), ('D', 'B'), ('E', 'C'), ('E', 'F'), ('F', 'D')]
+N = ['A', 'B', 'C', 'D','E','F']
 g = DirectedGraph(E, N)
-print(g.shortestPath(12, 6))
+### zadanie 1 #####
+print(g.adjMatrixRep)
+print(g.incMatrixRep)
+print(g)
+print(g.shortestPath('A', 'C'))
+#### zad 2 ###
+g.dfs('D')
+g.plot(['B', 'D', 'A'])
