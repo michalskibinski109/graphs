@@ -2,7 +2,7 @@ from re import L
 import numpy as np
 
 
-class Graph:
+class DirectedGraph:
     def __init__(self, E, N) -> None:
         """
         class for directed graph
@@ -25,6 +25,16 @@ class Graph:
             # A[self.nodes.index(j)][self.nodes.index(i)] = 1 # if graph not directed
         return A
 
+    def incMatrix(self):
+        """
+        return incident matrix
+        """
+        A = np.zeros((len(self.nodes), len(self.nodes)), dtype=np.int0)
+        for i, j in self.edges:
+            A[self.nodes.index(i)][self.nodes.index(j)] = 1
+            A[self.nodes.index(j)][self.nodes.index(i)] = -1
+        return A
+
     def shortestPath(self, u=0, v=0):
         """
         shortest path algorithm using matrix multiplication
@@ -40,18 +50,10 @@ class Graph:
                         C[i, j] = min(C[i, j], C[i, k]+C[k, j])
         return(int(C[self.nodes.index(u), self.nodes.index(v)]))
 
-    def incMatrix(self):
-        """
-        return incident matrix
-        """
-        A = np.zeros((len(self.nodes), len(self.nodes)), dtype=np.int0)
-        for i, j in self.edges:
-            A[self.nodes.index(i)][self.nodes.index(j)] = 1
-            A[self.nodes.index(j)][self.nodes.index(i)] = -1
-        return A
+
 
 
 E = [(12, 3), (45, 4), (3, 6), (6, 4), (4, 45), (45, 12)]
 N = [12, 3, 45, 4, 6]
-g = Graph(E, N)
+g = DirectedGraph(E, N)
 print(g.shortestPath(12, 6))
