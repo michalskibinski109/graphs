@@ -33,6 +33,13 @@ class Graph:
             graph[u].append(v)
         return graph
 
+    def isConnected(self):
+        self.shortestPath()
+        temp = np.multiply(self.C, len(self.nodes))
+        if min(temp > 0):
+            return True
+        return False 
+   
     def __str__(self):
         return str(f'edges: {self.edges}\nnodes: {self.nodes}')
 
@@ -132,6 +139,8 @@ g = Graph(E, N, 1)
 # print(g.incMatrixRep)
 # print(g)
 # print(g.shortestPath('A', 'C'))
+# print(g.isConnected())
+print()
 
 #### zad 2 ####
 g.dfs('A')
