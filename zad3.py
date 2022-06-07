@@ -1,107 +1,79 @@
-import math
-import matplotlib.pyplot as plt
 import networkx as nx
-import pprint
+import matplotlib.pyplot as plt
 
 
 class Graph:
-    def __init__(self):
-        self.nodes = list()
-        self.edges = list()
-        self.edges_dict = dict()
-        self.distance_matrix = None
-        self.next_matrix = None
+    def __init__(self, nodes, edges):
+        self.nodes = nodes
+        self.edges = edges
 
-    def add_node(self, node: str):
-        self.nodes.append(node)
+    def visualize(self):
+        g = nx.DiGraph()
+        g.add_edges_from(self.edges)
+        nx.draw(g, with_labels=True)
+        plt.show()
 
-    def add_edge(self, edge: list):
-        self.edges.append(edge)
-        self.edges.append([edge[1], edge[0], edge[2]])
-        if edge[0] not in self.edges_dict.keys():
-            self.edges_dict[edge[0]] = list()
-        if edge[1] not in self.edges_dict.keys():
-            self.edges_dict[edge[1]] = list()
-        if edge[1] not in self.edges_dict[edge[0]]:
-            self.edges_dict[edge[0]].append((edge[1], edge[2]))
-        if edge[0] not in self.edges_dict[edge[1]]:
-            self.edges_dict[edge[1]].append((edge[0], edge[2]))
+    # Funkcja rekurencyjna używana przez topologicalSort
+    def recursive_sort(self, s, visited, sort_list, neighbours):
+        # Oznaczamy wszystkie wierchołki jako odwiedzone
+        visited[s] = True
+        # Recur dla wszystkich wierzchołków sąsiadujących z tym wierzchołkiem
+        for i in neighbours[s]:
+            if visited[i] == 0:
+                self.recursive_sort(i, visited, sort_list, neighbours)
+        # Wstawiamy bieżący wierzchołek do stosu, który przechowuje wynik
+        sort_list.insert(0, s)
 
-    def make_distance_matrix(self):
-        self.distance_matrix = list()
-        for _ in range(len(self.nodes)):
-            self.distance_matrix.append(list())
-        for i in range(len(self.nodes)):
-            for j in range(len(self.nodes)):
-                self.distance_matrix[i].append(math.inf)
+    # Funkcja do sortowania topologicznego. Używa rekurencji topologicalSortUtil()
+    def topological_sorting(self):
 
-        for edge in self.edges:
-            self.distance_matrix[edge[0]][edge[1]] = edge[2]
+        def make_neighbours(nodes, edges): #tworzymy słownik, który przechowuje wyjscia z danych wierzchlkow (krawedzie)
+            neighbours_dict = {node: [] for node in nodes}
+            for edge in edges:
+                neighbours_dict[edge[0]].append(edge[1])
+            return neighbours_dict
 
-    def make_next_matrix(self):
-        self.next_matrix = list()
-        for _ in range(len(self.nodes)):
-            self.next_matrix.append(list())
-        for i in range(len(self.nodes)):
-            for j in range(len(self.nodes)):
-                self.next_matrix[i].append(None)
+        visited = [False] * len(self.nodes) # Oznacz wszystkie wierzchołki jako nieodwiedzone
+        sort_list = list()
+        neighbours = make_neighbours(self.nodes, self.edges)
+        #Wywołujemy rekurencyjną funkcję pomocniczą, aby zapisać Topological
+        #Sortuj zaczynając od wszystkich wierzchołków jeden po drugim
+        for v in self.nodes:
+            if visited[v] == False:
+                self.recursive_sort(v, visited, sort_list, neighbours)
+        #zawartość stosu
+        return sort_list
 
-        for i in range(len(self.nodes)):
-            for j in range(len(self.nodes)):
-                if self.distance_matrix[i][j] != math.inf:
-                    self.next_matrix[i][j] = j
-
-    def floyd_warshall(self):
-        self.make_distance_matrix()
-        self.make_next_matrix()
-        for i in range(len(self.nodes)):
-            for j in range(len(self.nodes)):
-                for k in range(len(self.nodes)):
-                    if self.distance_matrix[j][i] == math.inf or self.distance_matrix[i][k] == math.inf:
-                        continue
-                    if self.distance_matrix[j][k] > (self.distance_matrix[j][i] + self.distance_matrix[i][k]):
-                        self.distance_matrix[j][k] = self.distance_matrix[j][i] + self.distance_matrix[i][k]
-                        self.next_matrix[j][k] = self.next_matrix[j][i]
-
-    def shortest_path(self, source: int, target: int):
-        self.floyd_warshall()
-        if self.next_matrix[source][target] is None:
-            return [None, None]
-
-        path = list()
-        path.append(source)
-        while source != target:
-            source = self.next_matrix[source][target]
-            path.append(source)
-
-        return path, self.distance_matrix[path[0]][target]
-
-
-def visualize_graph(graph):
-    g1 = nx.Graph()
-    g1.add_nodes_from(graph.nodes)
-    pos = nx.spring_layout(g1)
-    edges_list = [[item[0], item[1]] for item in graph.edges]
-    weight_edges = {(item[0], item[1]): item[2] for item in graph.edges}
-    g1.add_edges_from(edges_list)
-    nx.draw(g1, pos, with_labels=True)
-    nx.draw_networkx_edge_labels(g1, pos, edge_labels=weight_edges)
-    plt.show()
+    def total_time(self, order=None):
+        if order is None:
+            order = self.topological_sorting()
+        time = 0
+        time_dict = {}
+        for node in order:
+            time_dict[node] = time
+            time += node
+        return time_dict
 
 
 if __name__ == "__main__":
-    g = Graph()
-    with open("graph_info/zad2nodes.txt") as f:
-        nodes = f.read().split()
-        for n in nodes:
-            g.add_node(int(n))
-    with open("graph_info/zad2edges.txt") as f:
-        edges = f.readlines()
-        for c in range(len(edges)):
-            edges[c] = edges[c].split()
-        for ed in edges:
-            to_add = [int(item) for item in ed]
-            g.add_edge(to_add)
+    nodes_list = [0, 1, 2, 3, 4, 5, 6]
+    edges_list = [(0, 1),
+                  (1, 2),
+                  (3, 2),
+                  (3, 1),
+                  (3, 2),
+                  (3, 4),
+                  (4, 5),
+                  (4, 6),
+                  (6, 5)]
 
-    print(g.shortest_path(4, 3))
-    visualize_graph(g)
+    visualizing = True
+    graph = Graph(nodes_list, edges_list)
+
+    if visualizing:
+        graph.visualize()
+
+    order_list = graph.topological_sorting()
+    print(order_list)
+
+    print("time", graph.total_time(order_list))
